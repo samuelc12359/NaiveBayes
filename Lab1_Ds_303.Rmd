@@ -1,0 +1,57 @@
+---
+title: "plot.cc"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+## Load the data
+
+test <- read.csv(file="TestX.csv",header=FALSE)
+train <- read.csv(file="TrainX.csv",header=FALSE)
+                   
+##Name the columns of both test and train Data
+Names <- c("x","y","Class")
+colnames(test)<- Names
+colnames(train)<- Names
+
+#Class is a contintuous variable so we need to change it to a categorical.
+library(plyr)
+test$Class <- mapvalues(test$Class, from = c("0", "1"), to = c("0", "1"))
+train$Class <- mapvalues(train$Class, from = c("0", "1"), to = c("0", "1"))
+
+#plot the data
+library("ggplot2")
+ggplot(train, aes(x= x, y=y,color = Class)) + geom_point() + ggtitle("Train Data: n = 100")
+ggplot(test, aes(x= x, y=y,color = Class)) + geom_point() + ggtitle("Test Data: n = 400")
+
+#There is a lot of over lap which tells me that our classifier is not going to be a perfect classifier. 
+```
+The naiveBayes function assumed gaussian distributions for numeric varibles.
+```{r}
+library(e1071)
+NBclassfier=naiveBayes(Class~x+y, data=train)
+print(NBclassfier)
+
+
+  trainPred=predict(NBclassfier,train, type="class")
+  trainTable=table(train$Class, trainPred)
+  testPred=predict(NBclassfier, newdata=test, type="class")
+  testTable=table(test$Class, testPred)
+  print(trainTable)
+   print(testTable)
+  
+  
+  trainAcc=(trainTable[1,1]+trainTable[2,2]+trainTable[3,3])/sum(trainTable)
+  testAcc=(testTable[1,1]+testTable[2,2]+testTable[3,3])/sum(testTable)
+  message("Contingency Table for Training Data")
+  
+  message("Contingency Table for Test Data")
+ 
+  message("Accuracy")
+  print(round(cbind(trainAccuracy=trainAcc, testAccuracy=testAcc),3))
+
+```
